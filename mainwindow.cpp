@@ -4,6 +4,8 @@
 MainWindow::MainWindow() : textEdit(new QTextEdit)
 {
     setCentralWidget(textEdit);
+    addButtonBar(Qt::LeftToolBarArea);
+    addButtonBar(Qt::RightToolBarArea);
     addButtonBar(Qt::BottomToolBarArea);
 
     createActions();
@@ -30,10 +32,20 @@ void MainWindow::createActions()
 
 void MainWindow::createDockWindow()
 {
-    QListWidget *itemList = new QListWidget();
-    itemList->addItems(QStringList() << "Hello! I am the bottom dock! ;)");
+    QListWidget *leftList = new QListWidget();
+    leftList->addItems(QStringList() << "Hello! I am the left dock! ;)");
 
-    addDockComponent(itemList, Qt::BottomDockWidgetArea, "Bottom Dock", QKeySequence(tr("Ctrl+O")));
+    addDockComponent(leftList, Qt::LeftDockWidgetArea, "Left Dock", QKeySequence(tr("Ctrl+B")));
+
+    QListWidget *rightList = new QListWidget();
+    rightList->addItems(QStringList() << "Hello! I am the right dock! ;)");
+
+    addDockComponent(rightList, Qt::RightDockWidgetArea, "Right Dock", QKeySequence(tr("Ctrl+R")));
+
+    QListWidget *bottomList = new QListWidget();
+    bottomList->addItems(QStringList() << "Hello! I am the bottom dock! ;)");
+
+    addDockComponent(bottomList, Qt::BottomDockWidgetArea, "Bottom Dock", QKeySequence(tr("Ctrl+B")));
 }
 
 void MainWindow::addDockComponent(QWidget *widget, Qt::DockWidgetArea area, const QString &code, QKeySequence shortcut)
@@ -48,8 +60,6 @@ void MainWindow::addDockComponent(QWidget *widget, Qt::DockWidgetArea area, cons
     addDockWidget(area, dockComponent);
 
     m_dockComponents[m_buttonBars[toToolBarArea(area)]] << dockComponent;
-
-    // return dockComponent;
 }
 
 Qt::ToolBarArea MainWindow::toToolBarArea(Qt::DockWidgetArea area)
