@@ -18,12 +18,18 @@ class DockComponent : public QDockWidget
 
         DockButton *button() const;
         void setExpandingFlag();
+        bool isExpanded();
+
         void setShortcut(QKeySequence shortcut);
+
+        void setPerspective(int wSpace);
+        int perspective() const;
 
     private:
         DockButton *currentButton;
         QString name;
         bool expanded;
+        int currentPerspective;
 };
 
 #endif

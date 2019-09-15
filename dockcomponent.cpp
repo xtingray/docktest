@@ -10,7 +10,7 @@ DockComponent::DockComponent(const QString &title, const QIcon &icon, const QStr
 
     setObjectName("DockComponent-" + code);
     name = title;
-    expanded = false;
+    expanded = true;
 }
 
 DockComponent::~DockComponent()
@@ -30,8 +30,22 @@ void DockComponent::setExpandingFlag()
         expanded = true;
 }
 
+bool DockComponent::isExpanded()
+{
+    return expanded;
+}
+
 void DockComponent::setShortcut(QKeySequence shortcut)
 {
     currentButton->setShortcut(shortcut);
 }
 
+void DockComponent::setPerspective(int wSpace)
+{
+    currentPerspective = wSpace;
+}
+
+int DockComponent::perspective() const
+{
+    return currentPerspective;
+}

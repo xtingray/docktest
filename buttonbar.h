@@ -20,12 +20,18 @@ class ButtonBar : public QToolBar
         ~ButtonBar();
 
         void addButton(DockButton *viewButton);
+        int count() const;
+        bool isEmpty() const;
+
+        void disable(DockButton *view);
+        void enable(DockButton *view);
 
     private slots:
         void closeOtherPanels(QAbstractButton *source);
 
     private:
         QButtonGroup m_buttons;
+        QMap<QWidget *, QAction *> m_actionForWidget;
 };
 
 #endif

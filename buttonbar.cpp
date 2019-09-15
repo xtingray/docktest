@@ -68,3 +68,29 @@ void ButtonBar::closeOtherPanels(QAbstractButton *source)
 
     static_cast<DockButton *>(source)->toggleView();
 }
+
+int ButtonBar::count() const
+{
+    return m_buttons.buttons().count();
+}
+
+bool ButtonBar::isEmpty() const
+{
+    return m_buttons.buttons().isEmpty(); 
+}
+
+void ButtonBar::disable(DockButton *view)
+{
+    QAction *action = m_actionForWidget[view];
+
+    if (action)
+        action->setVisible(false);
+}
+
+void ButtonBar::enable(DockButton *view)
+{
+    QAction *action = m_actionForWidget[view];
+
+    if (action)
+        action->setVisible(true);
+}

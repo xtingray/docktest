@@ -16,6 +16,7 @@ class DockButton : public QToolButton
 
         void setArea(Qt::ToolBarArea area);
         DockComponent *toolView() const;
+        Qt::ToolBarArea area() const;
 
     protected:
         virtual void mousePressEvent(QMouseEvent *);

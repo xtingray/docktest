@@ -1,17 +1,15 @@
 #include <QtWidgets>
 #include "mainwindow.h"
 
-MainWindow::MainWindow() : textEdit(new QTextEdit)
+MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
 {
-    setCentralWidget(textEdit);
     addButtonBar(Qt::LeftToolBarArea);
     addButtonBar(Qt::RightToolBarArea);
     addButtonBar(Qt::BottomToolBarArea);
 
     createActions();
-    createDockWindow();
 
-    setWindowTitle(tr("DockWidget Test"));
+    setDockNestingEnabled(false);
 }
 
 void MainWindow::addButtonBar(Qt::ToolBarArea area)
@@ -30,36 +28,22 @@ void MainWindow::createActions()
     action->setStatusTip(tr("Quit the application"));
 }
 
-void MainWindow::createDockWindow()
-{
-    QListWidget *leftList = new QListWidget();
-    leftList->addItems(QStringList() << "Hello! I am the left dock! ;)");
-
-    addDockComponent(leftList, Qt::LeftDockWidgetArea, "Left Dock", QKeySequence(tr("Ctrl+B")));
-
-    QListWidget *rightList = new QListWidget();
-    rightList->addItems(QStringList() << "Hello! I am the right dock! ;)");
-
-    addDockComponent(rightList, Qt::RightDockWidgetArea, "Right Dock", QKeySequence(tr("Ctrl+R")));
-
-    QListWidget *bottomList = new QListWidget();
-    bottomList->addItems(QStringList() << "Hello! I am the bottom dock! ;)");
-
-    addDockComponent(bottomList, Qt::BottomDockWidgetArea, "Bottom Dock", QKeySequence(tr("Ctrl+B")));
-}
-
-void MainWindow::addDockComponent(QWidget *widget, Qt::DockWidgetArea area, const QString &code, QKeySequence shortcut)
+DockComponent * MainWindow::addDockComponent(QWidget *widget, Qt::DockWidgetArea area, int ws,
+                                             const QString &code, QKeySequence shortcut)
 {
     DockComponent *dockComponent = new DockComponent(widget->windowTitle(), QPixmap("icons/test.png"), code);
 
     dockComponent->setShortcut(shortcut);
     dockComponent->setWidget(widget);
+    dockComponent->setPerspective(ws);
     dockComponent->button()->setArea(toToolBarArea(area));
     m_buttonBars[toToolBarArea(area)]->addButton(dockComponent->button());
 
     addDockWidget(area, dockComponent);
 
     m_dockComponents[m_buttonBars[toToolBarArea(area)]] << dockComponent;
+
+    return dockComponent;
 }
 
 Qt::ToolBarArea MainWindow::toToolBarArea(Qt::DockWidgetArea area)
@@ -69,28 +53,109 @@ Qt::ToolBarArea MainWindow::toToolBarArea(Qt::DockWidgetArea area)
            {
              return Qt::LeftToolBarArea;
            }
-           break;
         case Qt::RightDockWidgetArea:
            {
              return Qt::RightToolBarArea;
            }
-           break;
         case Qt::TopDockWidgetArea:
            {
              return Qt::TopToolBarArea;
            }
-           break;
         case Qt::BottomDockWidgetArea:
            {
              return Qt::BottomToolBarArea;
            }
-           break;
         default:
            {
            }
-           break;
     }
 
     return Qt::LeftToolBarArea;
 }
 
+void MainWindow::setCurrentPerspective(int workSpace)
+{
+    if (perspective == workSpace)
+        return;
+
+    typedef QList<DockComponent *> Views;
+    QList<Views > viewsList = m_dockComponents.values();
+
+    QHash<ButtonBar *, int> hideButtonCount;
+    foreach (Views views, viewsList) {
+        foreach (DockComponent *view, views) {
+            ButtonBar *bar = m_buttonBars[view->button()->area()];
+
+            if (view->perspective() & workSpace) {
+                bar->enable(view->button());
+                if (view->isExpanded()) {
+                    view->blockSignals(true);
+                    view->show(); 
+                    view->blockSignals(false);
+                }
+            } else {
+                bar->disable(view->button());
+                if (view->isExpanded()) {
+                    view->blockSignals(true);
+                    view->close();
+                    view->blockSignals(false);
+                }
+                hideButtonCount[bar]++;
+            }
+
+            if (bar->isEmpty() && bar->isVisible()) {
+                bar->hide();
+            } else {
+                if (!bar->isVisible())
+                    bar->show();
+            }
+        }
+    }
+
+    QHashIterator<ButtonBar *, int> barIt(hideButtonCount);
+    // This loop hides the bars with no buttons
+    while (barIt.hasNext()) {
+        barIt.next();
+        if (barIt.key()->count() == barIt.value())
+            barIt.key()->hide();
+    }
+
+    perspective = workSpace;
+    emit perspectiveChanged(perspective);
+}
+
+int MainWindow::currentPerspective() const
+{
+    return perspective;
+}
+
+void MainWindow::addToPerspective(QAction *action, int workSpace)
+{
+    if (!m_managedActions.contains(action)) {
+        m_managedActions.insert(action, workSpace);
+
+        if (!(workSpace & perspective))
+            action->setVisible(false);
+    }
+}
+
+void MainWindow::addToPerspective(const QList<QAction *> &actions, int workSpace)
+{
+    foreach (QAction *action, actions)
+        addToPerspective(action, workSpace);
+}
+
+void MainWindow::addToPerspective(QWidget *widget, int workSpace)
+{
+    if (QToolBar *bar = dynamic_cast<QToolBar*>(widget)) {
+        if (toolBarArea(bar) == 0)
+            addToolBar(bar);
+    }
+
+    if (!m_managedWidgets.contains(widget)) {
+        m_managedWidgets.insert(widget, workSpace);
+
+        if (!(workSpace & perspective))
+            widget->hide();
+    }
+}

@@ -34,3 +34,8 @@ DockComponent *DockButton::toolView() const
 {
     return dockComponent;
 }
+
+Qt::ToolBarArea DockButton::area() const
+{
+    return m_area;
+}
