@@ -1,5 +1,6 @@
 ﻿#include "mainui.h"
 
+#include <QBoxLayout>
 #include <QDebug>
 
 MainUI::MainUI(): TabbedMainWindow()
@@ -25,6 +26,8 @@ MainUI::MainUI(): TabbedMainWindow()
     QMainWindow *w2 = new QMainWindow;
     w2->setWindowTitle("Tab 2");
     w2->setWindowIcon(QIcon("icons/test.png"));
+    QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+    w2->setLayout(layout);
 
     addWidget(w2);
 }
